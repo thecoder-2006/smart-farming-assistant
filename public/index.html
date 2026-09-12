@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Farming Assistant - Farmer Portal</title>
+    
+    <!-- Link UI Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header & Language Switcher -->
+    <header>
+        <div>
+            <img src="assets/logo.png" alt="Smart Farming Logo" id="app-logo">
+            <h1 data-i18n="appTitle">Smart Farming Assistant</h1>
+        </div>
+        <div>
+            <button type="button" id="btn-lang-en" onclick="setLanguage('en')">English</button>
+            <button type="button" id="btn-lang-bn" onclick="setLanguage('bn')">বাংলা</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero-section">
+        <img src="assets/hero-bg.jpg" alt="Field Hero Background" id="hero-bg-img">
+        <div>
+            <h2 id="hero-title" data-i18n="heroTitle">Smart Agriculture & Crop Health Dashboard</h2>
+            <p id="hero-sub" data-i18n="heroSub">AI-powered disease detection, real-time irrigation monitoring, and risk alerts for farmers.</p>
+        </div>
+    </section>
+
+    <!-- Main Application Container -->
+    <main>
+
+        <!-- SECTION 1: Crop Health & Disease Detection -->
+        <section id="crop-health-section">
+            <h2 data-i18n="cropHealthSection">🌱 1. Crop Health & Disease Detection</h2>
+            
+            <div>
+                <h3 data-i18n="imageCaptureTitle">📷 Leaf / Crop Image Capture</h3>
+                <label for="image-input" id="upload-label" data-i18n="uploadLabel">Tap to Open Camera or Choose Photo:</label>
+                <br>
+                <button type="button" id="btn-open-camera" data-i18n="openCameraBtn">📷 Open Camera</button>
+                <button type="button" id="btn-choose-image" data-i18n="chooseImageBtn">🖼️ Click Image</button>
+                <input type="file" id="image-input" accept="image/*" capture="environment" class="sr-only-file-input">
+            </div>
+
+            <div id="preview-container">
+                <h4 data-i18n="imagePreviewLabel">Image Preview:</h4>
+                <img id="image-preview" src="#" alt="Leaf Preview Placeholder">
+            </div>
+
+            <div>
+                <button type="button" id="btn-analyze" disabled data-i18n="analyzeBtn">🔍 Analyze Crop Health</button>
+            </div>
+
+            <div id="disease-result-area">
+                <h3 data-i18n="diagnosticResults">Diagnostic Results</h3>
+                <p><strong data-i18n="plantHealthStatusLabel">🌿 Plant Health Status:</strong> <span id="res-health-status">Pending Analysis</span></p>
+                <p><strong data-i18n="diseaseDetectionLabel">🦠 Crop Disease Detection:</strong> <span id="res-disease-name">None Detected</span></p>
+                <p><strong data-i18n="pestStatusLabel">🐛 Pest / Pest Damage Identification:</strong> <span id="res-pest-status">No Pest Damage Detected</span></p>
+                <p><strong data-i18n="confidenceLabel">🎯 Confidence Score:</strong> <span id="res-confidence">0%</span></p>
+
+                <div>
+                    <strong data-i18n="recommendationLabel">💡 Recommendations & Next Action:</strong>
+                    <p id="res-recommendation" data-i18n="recommendationDefault">Upload or capture a leaf photo to view treatment guidance.</p>
+                </div>
+
+                <div>
+                    <button type="button" id="btn-audio-speak" onclick="speakResult()" data-i18n="audioGuideBtn">🔊 Listen Audio Guidance (নির্দেশিকা শুনুন)</button>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- SECTION 2: Smart Irrigation & Soil Monitoring -->
+        <section id="irrigation-soil-section">
+            <h2 data-i18n="irrigationSection">💧 2. Smart Irrigation & Soil Monitoring</h2>
+            
+            <div>
+                <h3 data-i18n="telemetryTitle">📊 Real-Time Field Telemetry</h3>
+                <div>
+                    <label for="moisture-slider" data-i18n="soilMoistureLabel">🌱 Soil Moisture Monitoring (<span id="soil-moisture-val">45%</span>):</label>
+                    <br>
+                    <input type="range" id="moisture-slider" min="0" max="100" value="45" oninput="updateTelemetry()">
+                </div>
+                <br>
+                <div>
+                    <label for="temp-slider" data-i18n="tempLabel">🌡️ Temperature Monitoring (<span id="temp-val">32°C</span>):</label>
+                    <br>
+                    <input type="range" id="temp-slider" min="10" max="50" value="32" oninput="updateTelemetry()">
+                </div>
+                <br>
+                <div>
+                    <label for="humidity-slider" data-i18n="humidityLabel">💧 Humidity Monitoring (<span id="humidity-val">65%</span>):</label>
+                    <br>
+                    <input type="range" id="humidity-slider" min="0" max="100" value="65" oninput="updateTelemetry()">
+                </div>
+            </div>
+
+            <br>
+
+            <div>
+                <h3 data-i18n="pumpTitle">💦 Irrigation Requirement Detection & Pump Control</h3>
+                <p><strong data-i18n="statusLabel">Status:</strong> <span id="irrigation-decision-text">Soil moisture is optimal. No irrigation required.</span></p>
+                <p><strong data-i18n="pumpStateLabel">🚰 Automatic / Remote Pump State:</strong> <span id="pump-status-text">OFF</span></p>
+                <button type="button" id="btn-toggle-pump" onclick="togglePump()" data-i18n="pumpToggleBtn">Toggle Pump ON/OFF Manually</button>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- SECTION 3: Agricultural Risk & Smart Alerts -->
+        <section id="risk-alerts-section">
+            <h2 data-i18n="riskSection">🌦️ 3. Agricultural Risk & Smart Alerts</h2>
+            
+            <div>
+                <h3 data-i18n="riskTitle">📱 Dashboard Environmental Risk Indications</h3>
+                <ul>
+                    <li><strong data-i18n="droughtRiskLabel">☀️ Drought Risk Alert:</strong> <span id="alert-drought">Low Risk</span></li>
+                    <li><strong data-i18n="floodRiskLabel">🌊 Flood / Waterlogging Risk Alert:</strong> <span id="alert-flood">Low Risk</span></li>
+                    <li><strong data-i18n="heatRiskLabel">🔥 Heat-Stress / Heat-Wave Alert:</strong> <span id="alert-heatwave">Normal Temperature</span></li>
+                    <li><strong data-i18n="weatherAssessmentLabel">🌧️ Weather / Environment Assessment:</strong> <span id="alert-weather-summary">Favorable conditions for crop growth.</span></li>
+                </ul>
+            </div>
+
+            <div>
+                <p><strong data-i18n="notificationsLabel">🔔 Active Farmer Notifications:</strong></p>
+                <div id="notification-box">
+                    <p id="notification-text">All environmental readings and sensor data are currently within safe limits.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Video Scanning Modal -->
+    <div id="loading-modal" class="hidden">
+        <div>
+            <video id="loading-video" autoplay loop muted playsinline>
+                <source src="assets/loading.mp4" type="video/mp4">
+            </video>
+            <p id="loading-text">Scanning leaf texture... Running AI model inference...</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Smart Farming Assistant | Pan-India AgTech Portal</p>
+    </footer>
+
+    <!-- Application JavaScript Scripts (NO ES modules — plain scripts) -->
+    <script src="js/loading.js"></script>
+    <script src="js/inference.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
