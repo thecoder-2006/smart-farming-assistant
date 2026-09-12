@@ -3,11 +3,18 @@ import json
 import os
 import urllib.request
 
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+    from torchvision import models, transforms
+except Exception:  # pragma: no cover - optional for lightweight Vercel deployments
+    torch = None
+    nn = None
+    models = None
+    transforms = None
+
 from flask import Flask, jsonify, request, send_from_directory
 from PIL import Image
-from torchvision import models, transforms
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -45,15 +52,18 @@ class_names = []
 num_classes = 0
 model = None
 model_loaded = False
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch and torch.cuda.is_available() else "cpu") if torch is not None else "cpu"
 
 
 # Image transformation used by the trained ResNet model
-image_transforms = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-])
+if transforms is not None:
+    image_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+else:
+    image_transforms = None
 
 
 def load_class_names():
@@ -77,7 +87,12 @@ load_class_names()
 
 
 def load_model():
-    global model, model_loaded, num_classes, class_names
+    global model, model_loaded, num_classes, class_names, device
+
+    if torch is None or models is None or nn is None:
+        print("ML dependencies unavailable; running lightweight Vercel-safe deployment mode.")
+        model_loaded = False
+        return False
 
     if not os.path.exists(MODEL_PATH):
         print(f"Model file not found: {MODEL_PATH}")
@@ -117,6 +132,9 @@ def load_model():
         print(f"Error loading model: {exc}")
         model_loaded = False
         return False
+
+
+load_model()
 
 
 def build_fallback_remedy(disease_name, confidence, language):
@@ -274,7 +292,10 @@ def remedy():
 @app.route("/api/predict", methods=["POST"])
 def predict():
     if not model_loaded:
-        return jsonify({"error": "Model not loaded. Training may still be in progress."}), 400
+        return jsonify({
+            "success": False,
+            "error": "This demo deployment is running in lightweight mode because the local ML stack exceeds the Vercel bundle limit. Add a remote inference backend or reinstall the full ML dependencies for local prediction."
+        }), 400
 
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400

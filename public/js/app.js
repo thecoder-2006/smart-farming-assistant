@@ -270,7 +270,7 @@ const translations = {
         confidenceLabel: '🎯 Confidence Score:',
         recommendationLabel: '💡 Recommendations & Next Action:',
         recommendationDefault: 'Upload or capture a leaf photo to view treatment guidance.',
-        audioGuideBtn: '🔊 Listen Audio Guidance (নির্দেশিকা শুনুন)',
+        audioGuideBtn: '🔊 Listen Audio Guidance',
         irrigationSection: '💧 2. Smart Irrigation & Soil Monitoring',
         telemetryTitle: '📊 Real-Time Field Telemetry',
         soilMoistureLabel: '🌱 Soil Moisture Monitoring',
@@ -306,7 +306,7 @@ const translations = {
         confidenceLabel: '🎯 আত্মবিশ্বাসের স্কোর:',
         recommendationLabel: '💡 সুপারিশ ও পরবর্তী পদক্ষেপ:',
         recommendationDefault: 'চিকিৎসা নির্দেশিকা দেখতে পাতা বা ফসলের ছবি আপলোড বা তুলুন।',
-        audioGuideBtn: '🔊 অডিও নির্দেশিকা শুনুন',
+        audioGuideBtn: '🔊 বাংলা অডিও শুনুন',
         irrigationSection: '💧 ২. স্মার্ট সেচ ও মাটি পর্যবেক্ষণ',
         telemetryTitle: '📊 রিয়েল-টাইম মাঠ টেলিমেট্রি',
         soilMoistureLabel: '🌱 মাটির আর্দ্রতা পর্যবেক্ষণ',
@@ -348,13 +348,35 @@ window.setLanguage = function (lang) {
 // Web Speech API Text-to-Speech Output
 // ---------------------------------------------------------------------------
 window.speakResult = function () {
-    const textToSpeak = resRecommendation.innerText;
-    if (!textToSpeak) return;
+    const textToSpeak = resRecommendation.innerText || document.getElementById('res-recommendation')?.innerText || '';
+    if (!textToSpeak.trim()) return;
 
-    window.speechSynthesis.cancel(); // Stop active playback
+    const synth = window.speechSynthesis;
+    if (synth) {
+        synth.cancel();
+    }
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = currentLang === 'bn' ? 'bn-IN' : 'en-US';
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
+    const preferredLocale = currentLang === 'bn' ? 'bn-BD' : 'en-US';
+    const voices = typeof window.speechSynthesis !== 'undefined' ? window.speechSynthesis.getVoices() : [];
+    const matchingVoice = voices.find((voice) => {
+        const lang = (voice.lang || '').toLowerCase();
+        if (currentLang === 'bn') {
+            return lang.startsWith('bn') || lang.includes('bengali');
+        }
+        return lang.startsWith('en');
+    }) || voices.find((voice) => (voice.lang || '').toLowerCase().startsWith(preferredLocale.toLowerCase().slice(0, 2))) || null;
+
+    utterance.lang = preferredLocale;
+    utterance.rate = 0.85;
+    utterance.pitch = currentLang === 'bn' ? 1.15 : 1.0;
+    utterance.volume = 1.0;
+
+    if (matchingVoice) {
+        utterance.voice = matchingVoice;
+    }
+
+    if (typeof window.speechSynthesis !== 'undefined') {
+        window.speechSynthesis.speak(utterance);
+    }
 };
