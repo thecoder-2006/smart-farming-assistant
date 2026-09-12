@@ -347,25 +347,42 @@ window.setLanguage = function (lang) {
 // ---------------------------------------------------------------------------
 // Web Speech API Text-to-Speech Output
 // ---------------------------------------------------------------------------
-window.speakResult = function () {
-    const textToSpeak = resRecommendation.innerText || document.getElementById('res-recommendation')?.innerText || '';
-    if (!textToSpeak.trim()) return;
-
+function getBestVoiceForLanguage(lang) {
     const synth = window.speechSynthesis;
-    if (synth) {
-        synth.cancel();
+    if (!synth) return null;
+
+    const voices = synth.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    if (lang === 'bn') {
+        return voices.find((voice) => {
+            const value = (voice.lang || '').toLowerCase();
+            return value.startsWith('bn') || value.includes('bengali') || value.includes('bangla');
+        }) || voices.find((voice) => (voice.lang || '').toLowerCase().startsWith('en')) || voices[0];
     }
 
+    return voices.find((voice) => (voice.lang || '').toLowerCase().startsWith('en')) || voices[0];
+}
+
+window.speakResult = function () {
+    const textToSpeak = resRecommendation.innerText || document.getElementById('res-recommendation')?.innerText || '';
+    if (!textToSpeak.trim() || !('speechSynthesis' in window)) return;
+
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices();
+    if (!voices || voices.length === 0) {
+        synth.onvoiceschanged = () => {
+            synth.onvoiceschanged = null;
+            window.speakResult();
+        };
+        return;
+    }
+
+    synth.cancel();
+
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    const preferredLocale = currentLang === 'bn' ? 'bn-BD' : 'en-US';
-    const voices = typeof window.speechSynthesis !== 'undefined' ? window.speechSynthesis.getVoices() : [];
-    const matchingVoice = voices.find((voice) => {
-        const lang = (voice.lang || '').toLowerCase();
-        if (currentLang === 'bn') {
-            return lang.startsWith('bn') || lang.includes('bengali');
-        }
-        return lang.startsWith('en');
-    }) || voices.find((voice) => (voice.lang || '').toLowerCase().startsWith(preferredLocale.toLowerCase().slice(0, 2))) || null;
+    const preferredLocale = currentLang === 'bn' ? 'bn-IN' : 'en-US';
+    const matchingVoice = getBestVoiceForLanguage(currentLang);
 
     utterance.lang = preferredLocale;
     utterance.rate = 0.85;
@@ -376,7 +393,5 @@ window.speakResult = function () {
         utterance.voice = matchingVoice;
     }
 
-    if (typeof window.speechSynthesis !== 'undefined') {
-        window.speechSynthesis.speak(utterance);
-    }
+    synth.speak(utterance);
 };

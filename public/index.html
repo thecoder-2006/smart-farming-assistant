@@ -12,11 +12,12 @@
 
     <!-- Header & Language Switcher -->
     <header>
-        <div>
+        <div class="brand-wrap">
             <img src="assets/logo.png" alt="Smart Farming Logo" id="app-logo">
             <h1 data-i18n="appTitle">Smart Farming Assistant</h1>
         </div>
-        <div>
+        <div class="header-actions">
+            <button type="button" id="btn-home" class="icon-button" aria-label="Go to home" title="Home" onclick="window.location.href='/'">🏠</button>
             <button type="button" id="btn-lang-en" onclick="setLanguage('en')">English</button>
             <button type="button" id="btn-lang-bn" onclick="setLanguage('bn')">বাংলা</button>
         </div>
